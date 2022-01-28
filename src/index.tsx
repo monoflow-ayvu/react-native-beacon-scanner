@@ -1,5 +1,12 @@
 import * as React from 'react'
-import { Button, NativeModules, StyleSheet, Text, View } from 'react-native'
+import {
+  Button,
+  DeviceEventEmitter,
+  NativeModules,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 
 export const addOne = (input: number) => input + 1
 
@@ -21,6 +28,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 200,
   },
+})
+
+DeviceEventEmitter.addListener('beacons', (data: any) => {
+  console.log('beacons', data)
 })
 
 export default NativeModules.RNBeaconScannerModule

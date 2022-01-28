@@ -39,4 +39,6 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'
+
+    implementation 'org.altbeacon:android-beacon-library:2.19'
 }
