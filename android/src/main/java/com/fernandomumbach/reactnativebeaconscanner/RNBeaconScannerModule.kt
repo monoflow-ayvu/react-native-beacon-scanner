@@ -19,7 +19,6 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     private var mReactContext: ReactApplicationContext? = null
     private var mGlobalRegion: Region
 
-//    private val IBEACON_LAYOUT = "m:0-3=4c000215,i:4-19,i:20-21,i:22-23,p:24-24"
     private val IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
     private val ALTBEACON_LAYOUT = BeaconParser.ALTBEACON_LAYOUT
 
@@ -68,6 +67,8 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
             }
             bMap.putArray("extra", extraArr)
 
+            bMap.putString("16bitUUID", UUID.nameUUIDFromBytes(it.serviceUuid128Bit).toString())
+
             arr.pushMap(bMap)
         }
 
@@ -82,8 +83,9 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         val instance = BeaconManager.getInstanceForApplication(ctx)
 
         // Add all the beacon types we want to discover
-        instance.beaconParsers.add(BeaconParser().setBeaconLayout(IBEACON_LAYOUT))
-        instance.beaconParsers.add(BeaconParser().setBeaconLayout(ALTBEACON_LAYOUT))
+//        instance.beaconParsers.add(BeaconParser().setBeaconLayout(IBEACON_LAYOUT))
+//        instance.beaconParsers.add(BeaconParser().setBeaconLayout(ALTBEACON_LAYOUT))
+        instance.beaconParsers.add(BeaconParser().setBeaconLayout("m:0-1=a108,x"))
 
         return instance
     }
