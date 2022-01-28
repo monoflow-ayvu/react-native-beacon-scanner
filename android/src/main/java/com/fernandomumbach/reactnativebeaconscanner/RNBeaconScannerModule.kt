@@ -7,6 +7,7 @@ import com.facebook.react.bridge.*
 import org.altbeacon.beacon.*
 
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import java.util.*
 
 
 class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext),
@@ -40,7 +41,6 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
 
     override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
         Log.w(LOG_TAG, "Beacons " + beacons.toString())
-        val map = Arguments.createMap()
         val arr = Arguments.createArray()
 
         beacons?.iterator()?.forEach {
@@ -51,10 +51,10 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
             bMap.putInt("rssi", it.rssi)
             bMap.putDouble("avgRSSI", it.runningAverageRssi)
             bMap.putInt("manufacturer", it.manufacturer)
-//            bMap.putArray("data", Arguments.fromArray(it.dataFields))
-//            bMap.putArray("extra", Arguments.fromArray(it.extraDataFields))
             bMap.putInt("scanCount", it.packetCount)
-            bMap.putString("uuid", it.serviceUuid128Bit.toString())
+            bMap.putString("uuid", it.id1.toUuid().toString())
+            bMap.putInt("major", it.id2.toInt())
+            bMap.putInt("minor", it.id3.toInt())
 
             val dataArr = Arguments.createArray()
             it.dataFields.iterator().forEach {
@@ -70,8 +70,8 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
 
             arr.pushMap(bMap)
         }
-        map.putArray("beacons", arr)
-        mReactContext?.let { sendEvent(it, "beacons", map) }
+
+        mReactContext?.let { sendEventArray(it, "beacons", arr) }
     }
 
     /***** END CALLBACKS ******/
@@ -92,6 +92,18 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         reactContext: ReactContext,
         eventName: String,
         params: WritableMap?
+    ) {
+        if (reactContext.hasActiveCatalystInstance()) {
+            reactContext
+                .getJSModule(RCTDeviceEventEmitter::class.java)
+                .emit(eventName, params)
+        }
+    }
+
+    private fun sendEventArray(
+        reactContext: ReactContext,
+        eventName: String,
+        params: WritableArray?
     ) {
         if (reactContext.hasActiveCatalystInstance()) {
             reactContext
