@@ -53,6 +53,20 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
             bMap.putInt("manufacturer", it.manufacturer)
 //            bMap.putArray("data", Arguments.fromArray(it.dataFields))
 //            bMap.putArray("extra", Arguments.fromArray(it.extraDataFields))
+            bMap.putInt("scanCount", it.packetCount)
+            bMap.putString("uuid", it.serviceUuid128Bit.toString())
+
+            val dataArr = Arguments.createArray()
+            it.dataFields.iterator().forEach {
+                dataArr.pushDouble(it.toDouble())
+            }
+            bMap.putArray("data", dataArr)
+
+            val extraArr = Arguments.createArray()
+            it.extraDataFields.iterator().forEach {
+                extraArr.pushDouble(it.toDouble())
+            }
+            bMap.putArray("extra", extraArr)
 
             arr.pushMap(bMap)
         }

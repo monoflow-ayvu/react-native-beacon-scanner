@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 })
 
 DeviceEventEmitter.addListener('beacons', (data: any) => {
-  console.log('beacons', data)
+  console.log('beacons', JSON.stringify(data, undefined, 2))
 })
 
 export default NativeModules.RNBeaconScannerModule
