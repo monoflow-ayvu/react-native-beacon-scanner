@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react'
-import RNModuleTemplateModule, { Counter } from 'react-native-module-template'
+import RNBeaconScannerModule, { Counter } from 'react-native-beacon-scanner'
 
 const App = () => {
   useEffect(() => {
-    console.log(RNModuleTemplateModule)
+    console.log(RNBeaconScannerModule)
   })
 
   return <Counter />
