@@ -40,5 +40,6 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'
 
-    implementation 'org.altbeacon:android-beacon-library:2.19'
+    implementation files('libs/MTBeaconPlus.jar')
+    implementation 'no.nordicsemi.android:dfu:1.12.0'
 }

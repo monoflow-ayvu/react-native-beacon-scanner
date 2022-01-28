@@ -22,5 +22,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name="com.minew.beaconplus.sdk.ConnectService"/>
+        <service android:name="com.minew.beaconplus.sdk.services.DfuService"/>
+        <receiver android:name="com.minew.beaconplus.sdk.receivers.BluetoothChangedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
