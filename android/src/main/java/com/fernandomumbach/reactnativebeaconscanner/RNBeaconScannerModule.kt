@@ -7,6 +7,7 @@ import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.minew.beaconplus.sdk.MTCentralManager
 import com.minew.beaconplus.sdk.MTPeripheral
+import com.minew.beaconplus.sdk.enums.BluetoothState
 import com.minew.beaconplus.sdk.interfaces.MTCentralManagerListener
 
 import com.minew.beaconplus.sdk.enums.FrameType
@@ -214,15 +215,31 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     /***** REACT METHODS ******/
 
     @ReactMethod
-    fun start() {
-        mtCentralManager?.startService()
-        mtCentralManager?.startScan()
+    fun start(promise: Promise) {
+        val state = mtCentralManager?.getBluetoothState(mApplicationContext)
+        if (state != BluetoothState.BluetoothStatePowerOn) {
+            promise.reject("Bluetooth not powered on", "Bluetooth is not powered on")
+            return
+        }
+
+        try {
+            mtCentralManager?.startService()
+            mtCentralManager?.startScan()
+            promise.resolve(null)
+        } catch (e: Exception) {
+            promise.reject("Error starting scan", e)
+        }
     }
 
     @ReactMethod
-    fun stop() {
-        mtCentralManager?.stopService()
-        mtCentralManager?.stopScan()
+    fun stop(promise: Promise) {
+        try {
+            mtCentralManager?.stopScan()
+            mtCentralManager?.stopService()
+            promise.resolve(null)
+        } catch (e: Exception) {
+            promise.reject("Error starting scan", e)
+        }
     }
 
     /***** END REACT METHODS ******/

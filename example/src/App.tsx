@@ -29,12 +29,18 @@ const App = () => {
   useEffect(() => {
     console.log(RNBeaconScannerModule)
 
-    requestLocationPermission().then((granted) => {
-      console.info('granted', granted)
-      RNBeaconScannerModule.start()
-    })
+    requestLocationPermission()
+      .then((granted) => {
+        console.info('granted', granted)
+        return RNBeaconScannerModule.start()
+      })
+      .then(() => console.info('scan started'))
+      .catch((err) => console.error('error', err))
 
-    return () => RNBeaconScannerModule.stop()
+    return () =>
+      RNBeaconScannerModule.stop().catch((err: Error) =>
+        console.error('error stopping', err)
+      )
   })
 
   return <Counter />
