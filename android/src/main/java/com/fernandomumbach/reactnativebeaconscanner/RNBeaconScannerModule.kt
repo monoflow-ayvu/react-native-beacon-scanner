@@ -2,23 +2,15 @@ package com.fernandomumbach.reactnativebeaconscanner
 
 import android.content.Context
 import android.util.Log
-import androidx.annotation.Nullable
 import com.facebook.react.bridge.*
 
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-import java.util.*
 import com.minew.beaconplus.sdk.MTCentralManager
 import com.minew.beaconplus.sdk.MTPeripheral
 import com.minew.beaconplus.sdk.interfaces.MTCentralManagerListener
-import com.minew.beaconplus.sdk.frames.MinewFrame
 
-import java.util.ArrayList
-
-import com.minew.beaconplus.sdk.MTFrameHandler
 import com.minew.beaconplus.sdk.enums.FrameType
-import com.minew.beaconplus.sdk.frames.AccFrame
-import com.minew.beaconplus.sdk.frames.DeviceInfoFrame
-import com.minew.beaconplus.sdk.frames.IBeaconFrame
+import com.minew.beaconplus.sdk.frames.*
 
 
 class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext),
@@ -63,8 +55,7 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
             val advFrames = mtFrameHandler.advFrames
 
             advFrames.forEach {
-                val frameType = it.frameType
-                when (frameType) {
+                when (it.frameType) {
                     FrameType.FrameiBeacon -> {
                         it as IBeaconFrame
                         val iBeaconMap = Arguments.createMap()
@@ -76,6 +67,15 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
                         dataFrames.pushMap(iBeaconMap)
                     }
 
+                    FrameType.FrameUID -> {
+                        it as UidFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "uid")
+                        map.putString("instance", it.instanceId)
+                        map.putString("namespace", it.namespaceId)
+                        dataFrames.pushMap(map)
+                    }
+
                     FrameType.FrameAccSensor -> {
                         it as AccFrame
                         val accMap = Arguments.createMap()
@@ -85,6 +85,103 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
                         accMap.putDouble("z", it.zAxis)
                         dataFrames.pushMap(accMap)
                     }
+
+                    FrameType.FrameHTSensor -> {
+                        it as HTFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "ht")
+                        map.putDouble("temperature", it.temperature)
+                        map.putDouble("humidity", it.humidity)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameTLM -> {
+                        it as TlmFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "tlm")
+                        map.putDouble("temperature", it.temperature)
+                        map.putInt("batteryVol", it.batteryVol)
+                        map.putInt("secCount", it.secCount)
+                        map.putInt("advCount", it.advCount)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameURL -> {
+                        it as UrlFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "url")
+                        map.putInt("tx", it.txPower)
+                        map.putString("url", it.urlString)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameLightSensor -> {
+                        it as LightFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "light")
+                        map.putInt("battery", it.battery)
+                        map.putInt("lux", it.luxValue)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameForceSensor -> {
+                        it as ForceFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "force")
+                        map.putInt("battery", it.battery)
+                        map.putInt("force", it.force)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FramePIRSensor -> {
+                        it as PIRFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "pir")
+                        map.putInt("battery", it.battery)
+                        map.putInt("pir", it.value)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameTempSensor -> {
+                        it as TemperatureFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "temperature")
+                        map.putInt("battery", it.battery)
+                        map.putDouble("temperature", it.value.toDouble())
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameTVOCSensor -> {
+                        it as TvocFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "tvoc")
+                        map.putInt("battery", it.battery)
+                        map.putInt("tvoc", it.value)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameLineBeacon -> {
+                        it as LineBeaconFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "line")
+                        map.putString("hwid", it.hwid)
+                        map.putInt("tx", it.txPower)
+                        map.putString("auth", it.authentication)
+                        map.putInt("timestamp", it.timesTamp)
+                        dataFrames.pushMap(map)
+                    }
+
+                    FrameType.FrameDeviceInfo -> {
+                        it as DeviceInfoFrame
+                        val map = Arguments.createMap()
+                        map.putString("type", "info")
+                        map.putString("mac", it.mac)
+                        map.putString("name", it.name)
+                        map.putInt("battery", it.battery)
+                        dataFrames.pushMap(map)
+                    }
+
+                    else -> {}
                 }
             }
 
@@ -96,58 +193,9 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         mReactContext?.let { sendEventArray(it, "beacons", arr) }
     }
 
-//    override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
-//        Log.w(LOG_TAG, "Beacons " + beacons.toString())
-//        val arr = Arguments.createArray()
-//
-//        beacons?.iterator()?.forEach {
-//            val bMap = Arguments.createMap()
-//            bMap.putString("address", it.bluetoothAddress)
-//            bMap.putString("name", it.bluetoothName)
-//            bMap.putDouble("distance", it.distance)
-//            bMap.putInt("rssi", it.rssi)
-//            bMap.putDouble("avgRSSI", it.runningAverageRssi)
-//            bMap.putInt("manufacturer", it.manufacturer)
-//            bMap.putInt("scanCount", it.packetCount)
-//            bMap.putString("uuid", it.id1.toUuid().toString())
-//            bMap.putInt("major", it.id2.toInt())
-//            bMap.putInt("minor", it.id3.toInt())
-//
-//            val dataArr = Arguments.createArray()
-//            it.dataFields.iterator().forEach {
-//                dataArr.pushDouble(it.toDouble())
-//            }
-//            bMap.putArray("data", dataArr)
-//
-//            val extraArr = Arguments.createArray()
-//            it.extraDataFields.iterator().forEach {
-//                extraArr.pushDouble(it.toDouble())
-//            }
-//            bMap.putArray("extra", extraArr)
-//
-//            bMap.putString("16bitUUID", UUID.nameUUIDFromBytes(it.serviceUuid128Bit).toString())
-//
-//            arr.pushMap(bMap)
-//        }
-//
-//        mReactContext?.let { sendEventArray(it, "beacons", arr) }
-//    }
-
     /***** END CALLBACKS ******/
 
     /***** UTILS ******/
-
-    private fun sendEvent(
-        reactContext: ReactContext,
-        eventName: String,
-        params: WritableMap?
-    ) {
-        if (reactContext.hasActiveCatalystInstance()) {
-            reactContext
-                .getJSModule(RCTDeviceEventEmitter::class.java)
-                .emit(eventName, params)
-        }
-    }
 
     private fun sendEventArray(
         reactContext: ReactContext,
