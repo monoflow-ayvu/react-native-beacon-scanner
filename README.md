@@ -62,7 +62,7 @@ const scanner = onBeaconScan((beacons) => {
   console.info(JSON.stringify(beacons, undefined, 2))
 })
 
-// Do not forget to clean subscription when not needed anymore
+// Do not forget to clear subscription when not needed anymore
 scanner.remove()
 ```
 
