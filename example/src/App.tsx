@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useEffect } from 'react'
 import { PermissionsAndroid, Text } from 'react-native'
 import {
