@@ -26,6 +26,8 @@ All frames provided by [Minew's documentation](https://docs.beaconyun.com/Androi
 1. First you'll need to ensure the permission for bluetooth and fine location are given.
 
 ```typescript
+import { PermissionsAndroid } from 'react-native'
+
 export async function requestLocationPermission() {
   try {
     const granted = await PermissionsAndroid.request(
@@ -53,11 +55,7 @@ export async function requestLocationPermission() {
 2. Then subscribe to beacon events from the lib
 
 ```typescript
-import {
-  setBluetoothState,
-  start,
-  stop,
-} from 'react-native-beacon-scanner'
+import {setBluetoothState} from 'react-native-beacon-scanner'
 
 const scanner = onBeaconScan((beacons) => {
   console.info('Beacons found: ', beacons.length)
@@ -72,7 +70,6 @@ scanner.remove()
 
 ```typescript
 import {
-  onBeaconScan,
   setBluetoothState,
   start,
   stop,
