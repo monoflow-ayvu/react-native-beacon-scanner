@@ -1,17 +1,19 @@
 package com.fernandomumbach.reactnativebeaconscanner
 
+import android.Manifest
+import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import com.facebook.react.bridge.*
-
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.minew.beaconplus.sdk.MTCentralManager
 import com.minew.beaconplus.sdk.MTPeripheral
 import com.minew.beaconplus.sdk.enums.BluetoothState
-import com.minew.beaconplus.sdk.interfaces.MTCentralManagerListener
-
 import com.minew.beaconplus.sdk.enums.FrameType
 import com.minew.beaconplus.sdk.frames.*
+import com.minew.beaconplus.sdk.interfaces.MTCentralManagerListener
 
 
 class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext),
@@ -240,6 +242,30 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         } catch (e: Exception) {
             promise.reject("Error starting scan", e)
         }
+    }
+
+    @ReactMethod
+    fun setBluetoothState(enable: Boolean, promise: Promise) {
+        val bluetoothManager = mApplicationContext?.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val mBluetoothAdapter = bluetoothManager.getAdapter()
+        if (mBluetoothAdapter.isEnabled != enable) {
+            if (ActivityCompat.checkSelfPermission(
+                    mApplicationContext!!,
+                    Manifest.permission.BLUETOOTH_ADMIN
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                promise.reject("Permission not granted", "BLUETOOTH_ADMIN permission not granted")
+                return
+            }
+
+            if (enable) {
+                mBluetoothAdapter.enable()
+            } else {
+                mBluetoothAdapter.disable()
+            }
+        }
+
+        promise.resolve(true)
     }
 
     /***** END REACT METHODS ******/
