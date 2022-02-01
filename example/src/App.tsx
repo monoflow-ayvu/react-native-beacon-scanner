@@ -35,13 +35,14 @@ const App = () => {
   useEffect(() => {
     const scanner = onBeaconScan((beacons) => {
       console.info('Beacons found: ', beacons.length)
-      console.dir(beacons)
+      console.info(JSON.stringify(beacons, undefined, 2))
     })
 
     requestLocationPermission()
-      .then((granted) => {
+      .then(async (granted) => {
         if (granted) {
-          return setBluetoothState(true)
+          console.log('turning bluetooth on...')
+          await setBluetoothState(true)
         } else {
           throw new Error('bluetooth permission not granted')
         }

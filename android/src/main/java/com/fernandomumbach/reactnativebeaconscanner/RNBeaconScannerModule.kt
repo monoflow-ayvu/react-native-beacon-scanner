@@ -1,8 +1,12 @@
 package com.fernandomumbach.reactnativebeaconscanner
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
@@ -23,6 +27,8 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     private var mtCentralManager: MTCentralManager? = null
     private var mApplicationContext: Context? = null
     private var mReactContext: ReactApplicationContext? = null
+    private var mPendingStatePromise: Promise? = null
+    private var mPendingState: Boolean? = null
 
     override fun getName() = LOG_TAG
 
@@ -35,6 +41,9 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         mtCentralManager = MTCentralManager.getInstance(mApplicationContext!!)
 
         mtCentralManager?.setMTCentralManagerListener(this)
+
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        mReactContext!!.registerReceiver(mReceiver, filter)
     }
 
     /***** CALLBACKS ******/
@@ -196,6 +205,27 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         mReactContext?.let { sendEventArray(it, "beacons", arr) }
     }
 
+    private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            if (action != null && action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+                val state = intent.getIntExtra(
+                    BluetoothAdapter.EXTRA_STATE,
+                    BluetoothAdapter.ERROR
+                )
+
+                mPendingState?.let {
+                    val newState = state == BluetoothAdapter.STATE_ON
+                    if (newState == it) {
+                        mPendingStatePromise?.resolve(true)
+                        mPendingState = null
+                        mPendingStatePromise = null
+                    }
+                }
+            }
+        }
+    }
+
     /***** END CALLBACKS ******/
 
     /***** UTILS ******/
@@ -224,9 +254,19 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
             return
         }
 
+        // the service might be already running, try to shut it down first
         try {
-            mtCentralManager?.startService()
-            mtCentralManager?.startScan()
+            mtCentralManager!!.stopScan()
+            mtCentralManager!!.stopService()
+        } catch (e: Exception) {
+            // no-op
+        }
+
+        mtCentralManager!!.clear()
+
+        try {
+            assert(mtCentralManager!!.startService())
+            mtCentralManager!!.startScan()
             promise.resolve(null)
         } catch (e: Exception) {
             promise.reject("Error starting scan", e)
@@ -247,25 +287,30 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     @ReactMethod
     fun setBluetoothState(enable: Boolean, promise: Promise) {
         val bluetoothManager = mApplicationContext?.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val mBluetoothAdapter = bluetoothManager.getAdapter()
-        if (mBluetoothAdapter.isEnabled != enable) {
-            if (ActivityCompat.checkSelfPermission(
-                    mApplicationContext!!,
-                    Manifest.permission.BLUETOOTH_ADMIN
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                promise.reject("Permission not granted", "BLUETOOTH_ADMIN permission not granted")
-                return
-            }
+        val mBluetoothAdapter = bluetoothManager.adapter
 
-            if (enable) {
-                mBluetoothAdapter.enable()
-            } else {
-                mBluetoothAdapter.disable()
-            }
+        if (ActivityCompat.checkSelfPermission(
+                mApplicationContext!!,
+                Manifest.permission.BLUETOOTH_ADMIN
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            promise.reject("Permission not granted", "BLUETOOTH_ADMIN permission not granted")
+            return
         }
 
-        promise.resolve(true)
+        if (!mBluetoothAdapter.isEnabled && enable) {
+            mBluetoothAdapter.enable()
+        } else if (mBluetoothAdapter.isEnabled && !enable) {
+            mBluetoothAdapter.disable()
+        } else {
+            // the requested condition is already met!
+            promise.resolve(true)
+            return
+        }
+
+        // the promise is answered on onStateChanged
+        mPendingStatePromise = promise
+        mPendingState = enable
     }
 
     /***** END REACT METHODS ******/
