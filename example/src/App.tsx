@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useEffect } from 'react'
-import { PermissionsAndroid } from 'react-native'
+import { PermissionsAndroid, Text } from 'react-native'
 import {
   onBeaconScan,
   setBluetoothState,
@@ -57,7 +57,7 @@ const App = () => {
     }
   })
 
-  return null
+  return <Text>Started! Please check react-native logs.</Text>
 }
 
 export default App
