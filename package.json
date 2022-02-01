@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "homepage": "https://github.com/monoflow-ayvu/react-native-beacon-scanner",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "author": "Fernando Mumbach <fermuch@ayvu.net>",
   "license": "MIT",
