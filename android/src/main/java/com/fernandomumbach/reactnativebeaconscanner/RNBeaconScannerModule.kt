@@ -231,11 +231,7 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     }
 
     override fun onHostPause() {
-        try {
-            stop()
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, e.toString())
-        }
+        // noop
     }
 
     override fun onHostDestroy() {
@@ -244,6 +240,11 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         } catch (e: Exception) {
             Log.e(LOG_TAG, e.toString())
         }
+    }
+
+    override fun onCatalystInstanceDestroy() {
+        Log.d(LOG_TAG, "onCatalystInstanceDestroy stopping")
+        stop()
     }
 
     /***** END CALLBACKS ******/
@@ -281,8 +282,8 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
 
     private fun stop() {
         Log.i(LOG_TAG, "Stopping RNBeaconScannerModule")
-//        mtCentralManager?.stopScan()
-//        mtCentralManager?.stopService()
+        mtCentralManager?.stopScan()
+        mtCentralManager?.stopService()
         mtCentralManager?.setMTCentralManagerListener(null)
         mReactContext?.unregisterReceiver(mReceiver)
     }
