@@ -263,10 +263,11 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     }
 
     private fun start() {
+        Log.i(LOG_TAG, "Starting RNBeaconScannerModule")
+
         mtCentralManager!!.clear()
         mtCentralManager!!.setMTCentralManagerListener(this)
-
-        assert(mtCentralManager!!.startService())
+        
         mtCentralManager!!.startScan()
 
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
@@ -274,7 +275,8 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     }
 
     private fun stop() {
-        mtCentralManager?.stopScan()
+        Log.i(LOG_TAG, "Stopping RNBeaconScannerModule")
+//        mtCentralManager?.stopScan()
         mtCentralManager?.stopService()
         mtCentralManager?.setMTCentralManagerListener(null)
         mReactContext?.unregisterReceiver(mReceiver)
