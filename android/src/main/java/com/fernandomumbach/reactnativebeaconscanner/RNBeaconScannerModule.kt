@@ -21,7 +21,7 @@ import com.minew.beaconplus.sdk.interfaces.MTCentralManagerListener
 
 
 class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext),
-    MTCentralManagerListener {
+    MTCentralManagerListener, LifecycleEventListener {
     private val LOG_TAG = "RNBeaconScannerModule"
 
     private var mtCentralManager: MTCentralManager? = null
@@ -38,6 +38,7 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
 
     override fun initialize() {
         mApplicationContext = mReactContext!!.applicationContext
+        mReactContext!!.addLifecycleEventListener(this);
         mtCentralManager = MTCentralManager.getInstance(mApplicationContext!!)
     }
 
@@ -221,6 +222,30 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         }
     }
 
+    override fun onHostResume() {
+        try {
+            start()
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, e.toString())
+        }
+    }
+
+    override fun onHostPause() {
+        try {
+            stop()
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, e.toString())
+        }
+    }
+
+    override fun onHostDestroy() {
+        try {
+            stop()
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, e.toString())
+        }
+    }
+
     /***** END CALLBACKS ******/
 
     /***** UTILS ******/
@@ -237,6 +262,24 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         }
     }
 
+    private fun start() {
+        mtCentralManager!!.clear()
+        mtCentralManager!!.setMTCentralManagerListener(this)
+
+        assert(mtCentralManager!!.startService())
+        mtCentralManager!!.startScan()
+
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        mReactContext!!.registerReceiver(mReceiver, filter)
+    }
+
+    private fun stop() {
+        mtCentralManager?.stopScan()
+        mtCentralManager?.stopService()
+        mtCentralManager?.setMTCentralManagerListener(null)
+        mReactContext?.unregisterReceiver(mReceiver)
+    }
+
     /***** END UTILS ******/
 
     /***** REACT METHODS ******/
@@ -251,22 +294,13 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
 
         // the service might be already running, try to shut it down first
         try {
-            mtCentralManager!!.stopScan()
-            mtCentralManager!!.stopService()
+            stop()
         } catch (e: Exception) {
             // no-op
         }
 
-        mtCentralManager!!.clear()
-        mtCentralManager!!.setMTCentralManagerListener(this)
-
         try {
-            assert(mtCentralManager!!.startService())
-            mtCentralManager!!.startScan()
-
-            val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-            mReactContext!!.registerReceiver(mReceiver, filter)
-
+            start()
             promise.resolve(null)
         } catch (e: Exception) {
             promise.reject("Error starting scan", e)
@@ -276,10 +310,7 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     @ReactMethod
     fun stop(promise: Promise) {
         try {
-            mReactContext!!.unregisterReceiver(mReceiver)
-            mtCentralManager!!.setMTCentralManagerListener(null)
-            mtCentralManager?.stopScan()
-            mtCentralManager?.stopService()
+            stop()
             promise.resolve(null)
         } catch (e: Exception) {
             promise.reject("Error starting scan", e)
