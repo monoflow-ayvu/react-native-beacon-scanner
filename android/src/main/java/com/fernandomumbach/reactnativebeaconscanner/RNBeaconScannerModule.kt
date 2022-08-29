@@ -248,7 +248,11 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
 
     override fun onCatalystInstanceDestroy() {
         Log.d(LOG_TAG, "onCatalystInstanceDestroy stopping")
-        stop()
+        try {
+            stop()
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, e.toString())
+        }
     }
 
     /***** END CALLBACKS ******/
