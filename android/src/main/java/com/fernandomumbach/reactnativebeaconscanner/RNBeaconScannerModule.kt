@@ -292,9 +292,11 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
 
     private fun stop() {
         Log.i(LOG_TAG, "Stopping RNBeaconScannerModule")
-        mtCentralManager?.stopScan()
-        mtCentralManager?.stopService()
-        mtCentralManager?.setMTCentralManagerListener(null)
+        mtCentralManager?.let {
+            it.setMTCentralManagerListener(null)
+            it.stopScan()
+            it.stopService()
+        }
         mReactContext?.unregisterReceiver(mReceiver)
     }
 
