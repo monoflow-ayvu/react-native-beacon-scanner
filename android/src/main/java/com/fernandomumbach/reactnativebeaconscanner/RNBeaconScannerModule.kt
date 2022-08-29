@@ -231,7 +231,11 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     }
 
     override fun onHostPause() {
-        // noop
+        try {
+            stop()
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, e.toString())
+        }
     }
 
     override fun onHostDestroy() {
@@ -256,7 +260,7 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
         eventName: String,
         params: WritableArray?
     ) {
-        if (reactContext.hasActiveCatalystInstance()) {
+        if (reactContext.hasActiveReactInstance()) {
             reactContext
                 .getJSModule(RCTDeviceEventEmitter::class.java)
                 .emit(eventName, params)
@@ -266,18 +270,24 @@ class RNBeaconScannerModule(reactContext: ReactApplicationContext) : ReactContex
     private fun start() {
         Log.i(LOG_TAG, "Starting RNBeaconScannerModule")
 
-        mtCentralManager!!.clear()
-        mtCentralManager!!.setMTCentralManagerListener(this)
-
-        try {
-            mtCentralManager!!.startService()
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, e.toString())
+        if (mtCentralManager == null) {
+            mtCentralManager = MTCentralManager.getInstance(mApplicationContext!!)
         }
-        mtCentralManager!!.startScan()
 
-        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        mReactContext!!.registerReceiver(mReceiver, filter)
+        mtCentralManager?.let {
+            it.clear()
+            it.setMTCentralManagerListener(this)
+
+            try {
+                it.startService()
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, e.toString())
+            }
+            it.startScan()
+
+            val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+            mReactContext?.registerReceiver(mReceiver, filter)
+        }
     }
 
     private fun stop() {
