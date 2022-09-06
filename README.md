@@ -1,5 +1,13 @@
 # react-native-beacon-scanner
 
+# DEPRECATED
+
+The minew SDK proved to be too unreliable to be used in serious app, and not just as a scanning app.
+
+I'm sorry to inform you this SDK is deprecated.
+
+I recommend you to check out [react-native-ble-plx](https://github.com/dotintent/react-native-ble-plx) and pair it with advlib (specially [advlib-ble-services](https://github.com/reelyactive/advlib-ble-services), since it contains several of minew's data frames)
+
 ## NOTE
 
 This scanner only scans for Minew beacons. Please keep that in mind.
